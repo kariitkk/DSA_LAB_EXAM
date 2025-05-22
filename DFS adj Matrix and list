@@ -1,0 +1,104 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 10
+
+// ==== DFS using Adjacency Matrix ====
+int adjMatrix[MAX][MAX];
+int visitedMatrix[MAX];
+
+void dfsMatrix(int v, int n) {
+    visitedMatrix[v] = 1;
+    printf("%d ", v);
+
+    for (int i = 0; i < n; i++) {
+        if (adjMatrix[v][i] == 1 && !visitedMatrix[i]) {
+            dfsMatrix(i, n);
+        }
+    }
+}
+
+// ==== DFS using Adjacency List ====
+struct Node {
+    int vertex;
+    struct Node* next;
+};
+
+struct Node* adjList[MAX];
+int visitedList[MAX];
+
+struct Node* createNode(int v) {
+    struct Node* newNode = (struct Node*) malloc(sizeof(struct Node));
+    newNode->vertex = v;
+    newNode->next = NULL;
+    return newNode;
+}
+
+void addEdgeList(int src, int dest) {
+    struct Node* newNode = createNode(dest);
+    newNode->next = adjList[src];
+    adjList[src] = newNode;
+
+    newNode = createNode(src);
+    newNode->next = adjList[dest];
+    adjList[dest] = newNode;
+}
+
+void dfsList(int v) {
+    visitedList[v] = 1;
+    printf("%d ", v);
+
+    struct Node* temp = adjList[v];
+    while (temp != NULL) {
+        int next = temp->vertex;
+        if (!visitedList[next]) {
+            dfsList(next);
+        }
+        temp = temp->next;
+    }
+}
+
+// ==== Main ====
+int main() {
+    int n, edges, src, dest, start, choice;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    // Initialize list
+    for (int i = 0; i < n; i++) adjList[i] = NULL;
+
+    printf("Enter number of edges: ");
+    scanf("%d", &edges);
+
+    for (int i = 0; i < edges; i++) {
+        printf("Enter edge (src dest): ");
+        scanf("%d %d", &src, &dest);
+        adjMatrix[src][dest] = 1;
+        adjMatrix[dest][src] = 1; // Undirected
+
+        addEdgeList(src, dest);
+    }
+
+    printf("Enter starting vertex: ");
+    scanf("%d", &start);
+
+    printf("Choose DFS method:\n1. Adjacency Matrix\n2. Adjacency List\nEnter choice: ");
+    scanf("%d", &choice);
+
+    if (choice == 1) {
+        for (int i = 0; i < n; i++) visitedMatrix[i] = 0;
+        printf("DFS using Adjacency Matrix: ");
+        dfsMatrix(start, n);
+    }
+    else if (choice == 2) {
+        for (int i = 0; i < n; i++) visitedList[i] = 0;
+        printf("DFS using Adjacency List: ");
+        dfsList(start);
+    }
+    else {
+        printf("Invalid choice!\n");
+    }
+
+    return 0;
+}
