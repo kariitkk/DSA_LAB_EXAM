@@ -1,0 +1,168 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+// Char stack
+struct stack {
+    int size;
+    int top;
+    char *arr;
+};
+
+int isEmpty(struct stack *ptr) {
+    return ptr->top == -1;
+}
+
+void push(struct stack *ptr, char val) {
+    ptr->arr[++ptr->top] = val;
+}
+
+char pop(struct stack *ptr) {
+    return ptr->arr[ptr->top--];
+}
+
+char stackTop(struct stack *sp) {
+    return sp->arr[sp->top];
+}
+
+int precedence(char ch) {
+    if (ch == '*' || ch == '/')
+        return 3;
+    else if (ch == '+' || ch == '-')
+        return 2;
+    else
+        return 0;
+}
+
+int isOperator(char ch) {
+    return ch == '+' || ch == '-' || ch == '*' || ch == '/';
+}
+
+// Utility function to reverse a string
+void reverse(char *exp) {
+    int n = strlen(exp);
+    for (int i = 0; i < n / 2; i++) {
+        char temp = exp[i];
+        exp[i] = exp[n - i - 1];
+        exp[n - i - 1] = temp;
+    }
+}
+
+// Swap '(' and ')'
+void swapParentheses(char *exp) {
+    for (int i = 0; exp[i]; i++) {
+        if (exp[i] == '(')
+            exp[i] = ')';
+        else if (exp[i] == ')')
+            exp[i] = '(';
+    }
+}
+
+char* infixToPrefix(char* infix) {
+    int len = strlen(infix);
+    struct stack *sp = (struct stack *)malloc(sizeof(struct stack));
+    sp->size = len;
+    sp->top = -1;
+    sp->arr = (char *)malloc(sp->size * sizeof(char));
+    char *prefix = (char *)malloc((len + 1) * sizeof(char));
+
+    reverse(infix);
+    swapParentheses(infix);
+
+    int i = 0, j = 0;
+    while (infix[i] != '\0') {
+        char ch = infix[i];
+        if (isalnum(ch)) {
+            prefix[j++] = ch;
+        }
+        else if (ch == '(') {
+            push(sp, ch);
+        }
+        else if (ch == ')') {
+            while (!isEmpty(sp) && stackTop(sp) != '(') {
+                prefix[j++] = pop(sp);
+            }
+            if (!isEmpty(sp)) pop(sp); // pop '('
+        }
+        else if (isOperator(ch)) {
+            while (!isEmpty(sp) && precedence(ch) < precedence(stackTop(sp))) {
+                prefix[j++] = pop(sp);
+            }
+            push(sp, ch);
+        }
+        i++;
+    }
+
+    while (!isEmpty(sp)) {
+        prefix[j++] = pop(sp);
+    }
+
+    prefix[j] = '\0';
+    reverse(prefix);
+
+    free(sp->arr);
+    free(sp);
+    return prefix;
+}
+
+// Int stack for evaluation
+struct intStack {
+    int size;
+    int top;
+    int *arr;
+};
+
+void pushInt(struct intStack *ptr, int val) {
+    ptr->arr[++ptr->top] = val;
+}
+
+int popInt(struct intStack *ptr) {
+    return ptr->arr[ptr->top--];
+}
+
+int evaluatePrefix(char *prefix) {
+    int len = strlen(prefix);
+    struct intStack *sp = (struct intStack *)malloc(sizeof(struct intStack));
+    sp->size = len;
+    sp->top = -1;
+    sp->arr = (int *)malloc(sp->size * sizeof(int));
+
+    for (int i = len - 1; i >= 0; i--) {
+        char ch = prefix[i];
+        if (isdigit(ch)) {
+            pushInt(sp, ch - '0');
+        } else if (isOperator(ch)) {
+            int op1 = popInt(sp);
+            int op2 = popInt(sp);
+            int result;
+            switch (ch) {
+                case '+': result = op1 + op2; break;
+                case '-': result = op1 - op2; break;
+                case '*': result = op1 * op2; break;
+                case '/': result = op1 / op2; break;
+            }
+            pushInt(sp, result);
+        }
+    }
+
+    int finalResult = popInt(sp);
+    free(sp->arr);
+    free(sp);
+    return finalResult;
+}
+
+int main() {
+    char arr[100];
+    printf("Enter the infix expression (use digits only like 2+3*4): ");
+    scanf("%s", arr);
+
+    char* prefix = infixToPrefix(arr);
+    printf("Prefix: %s\n", prefix);
+
+    int result = evaluatePrefix(prefix);
+    printf("Evaluated Result: %d\n", result);
+
+    free(prefix);
+    return 0;
+}
