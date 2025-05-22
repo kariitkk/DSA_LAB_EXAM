@@ -1,0 +1,170 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+#define MAX 100
+
+// ---------- STRUCTURE FOR ADJACENCY LIST ----------
+typedef struct Node {
+    int vertex;
+    int weight;
+    struct Node* next;
+} Node;
+
+typedef struct {
+    Node* head;
+} AdjList;
+
+// ---------- COMMON UTILITY FUNCTION ----------
+int minKey(int key[], int mstSet[], int n) {
+    int min = INT_MAX, min_index = -1;
+    for (int v = 0; v < n; v++)
+        if (!mstSet[v] && key[v] < min)
+            min = key[v], min_index = v;
+    return min_index;
+}
+
+// ---------- PRINT FUNCTIONS ----------
+void printMSTMatrix(int parent[], int graph[MAX][MAX], int n) {
+    int totalWeight = 0;
+    printf("\nEdge \tWeight\n");
+    for (int i = 1; i < n; i++) {
+        printf("%d - %d\t%d\n", parent[i], i, graph[i][parent[i]]);
+        totalWeight += graph[i][parent[i]];
+    }
+    printf("Total weight of MST: %d\n", totalWeight);
+}
+
+void printMSTList(int parent[], int key[], int n) {
+    int total = 0;
+    printf("\nEdge \tWeight\n");
+    for (int i = 1; i < n; i++) {
+        printf("%d - %d\t%d\n", parent[i], i, key[i]);
+        total += key[i];
+    }
+    printf("Total weight of MST: %d\n", total);
+}
+
+// ---------- PRIM'S ALGORITHM USING MATRIX ----------
+void primMatrix(int graph[MAX][MAX], int n) {
+    int parent[MAX], key[MAX], mstSet[MAX];
+
+    for (int i = 0; i < n; i++) {
+        key[i] = INT_MAX;
+        mstSet[i] = 0;
+    }
+
+    key[0] = 0;
+    parent[0] = -1;
+
+    for (int count = 0; count < n - 1; count++) {
+        int u = minKey(key, mstSet, n);
+        if (u == -1) break;
+
+        mstSet[u] = 1;
+
+        for (int v = 0; v < n; v++) {
+            if (graph[u][v] && !mstSet[v] && graph[u][v] < key[v]) {
+                parent[v] = u;
+                key[v] = graph[u][v];
+            }
+        }
+    }
+
+    printMSTMatrix(parent, graph, n);
+}
+
+// ---------- ADD EDGE TO ADJACENCY LIST ----------
+void addEdge(AdjList adj[], int u, int v, int w) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->vertex = v;
+    newNode->weight = w;
+    newNode->next = adj[u].head;
+    adj[u].head = newNode;
+
+    newNode = (Node*)malloc(sizeof(Node));
+    newNode->vertex = u;
+    newNode->weight = w;
+    newNode->next = adj[v].head;
+    adj[v].head = newNode;
+}
+
+// ---------- PRIM'S ALGORITHM USING ADJACENCY LIST ----------
+void primList(AdjList adj[], int n) {
+    int key[MAX], parent[MAX], mstSet[MAX];
+
+    for (int i = 0; i < n; i++) {
+        key[i] = INT_MAX;
+        parent[i] = -1;
+        mstSet[i] = 0;
+    }
+
+    key[0] = 0;
+
+    for (int count = 0; count < n - 1; count++) {
+        int u = minKey(key, mstSet, n);
+        if (u == -1) break;
+
+        mstSet[u] = 1;
+
+        Node* temp = adj[u].head;
+        while (temp != NULL) {
+            int v = temp->vertex;
+            if (!mstSet[v] && temp->weight < key[v]) {
+                key[v] = temp->weight;
+                parent[v] = u;
+            }
+            temp = temp->next;
+        }
+    }
+
+    printMSTList(parent, key, n);
+}
+
+// ---------- MAIN FUNCTION ----------
+int main() {
+    int n, choice;
+
+    printf("Enter number of vertices in the graph: ");
+    scanf("%d", &n);
+
+    printf("\nChoose Graph Representation:\n");
+    printf("1. Adjacency Matrix\n");
+    printf("2. Adjacency List\n");
+    printf("Enter choice (1 or 2): ");
+    scanf("%d", &choice);
+
+    if (choice == 1) {
+        int graph[MAX][MAX];
+        printf("Enter adjacency matrix (0 if no edge):\n");
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                scanf("%d", &graph[i][j]);
+
+        printf("\nMST using Prim’s Algorithm (Adjacency Matrix):\n");
+        primMatrix(graph, n);
+
+    } else if (choice == 2) {
+        AdjList adj[MAX];
+        for (int i = 0; i < n; i++)
+            adj[i].head = NULL;
+
+        int e;
+        printf("Enter number of edges: ");
+        scanf("%d", &e);
+        for (int i = 0; i < e; i++) {
+            int u, v, w;
+            printf("Enter edge %d (u v weight): ", i + 1);
+            scanf("%d %d %d", &u, &v, &w);
+            addEdge(adj, u, v, w);
+        }
+
+        printf("\nMST using Prim’s Algorithm (Adjacency List):\n");
+        primList(adj, n);
+
+    } else {
+        printf("Invalid choice. Please select 1 or 2.\n");
+    }
+
+    return 0;
+}
