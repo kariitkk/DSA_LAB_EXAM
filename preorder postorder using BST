@@ -1,0 +1,155 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct node {
+    int data;
+    struct node* left;
+    struct node* right;
+};
+
+struct stack {
+    struct node* data[100];
+    int top;
+};
+
+int isEmpty(struct stack *s) {
+    return s->top == -1;
+}
+
+int isFull(struct stack *s) {
+    return s->top == 99;
+}
+
+void push(struct stack *s, struct node *node) {
+    if (!isFull(s)) {
+        s->top++;
+        s->data[s->top] = node;
+    }
+}
+
+struct node* pop(struct stack *s) {
+    if (!isEmpty(s)) {
+        return s->data[s->top--];
+    }
+    return NULL;
+}
+
+struct node* createnode(int data) {
+    struct node* newnode = (struct node*)malloc(sizeof(struct node));
+    newnode->data = data;
+    newnode->left = NULL;
+    newnode->right = NULL;
+    return newnode;
+}
+
+struct node* insert(struct node* root, int data) {
+    if (root == NULL) {
+        root = createnode(data);
+        return root;
+    }
+    if (data < root->data) {
+        root->left = insert(root->left, data);
+    } else {
+        root->right = insert(root->right, data);
+    }
+    return root;
+}
+
+void preorder(struct node* root) {
+    struct stack s;
+    s.top = -1;
+    if (root == NULL) return;
+
+    push(&s, root);
+    int first = 1;
+    while (!isEmpty(&s)) {
+        struct node* current = pop(&s);
+        if (!first) printf("-> ");
+        printf("%d", current->data);
+        first = 0;
+
+        if (current->right) push(&s, current->right);
+        if (current->left) push(&s, current->left);
+    }
+}
+
+void postorder(struct node* root) {
+    struct stack s;
+    s.top = -1;
+    struct node* current = root;
+    struct node* lastVisited = NULL;
+
+    int result[100]; // store traversal result
+    int count = 0;
+
+    while (current != NULL || !isEmpty(&s)) {
+        if (current != NULL) {
+            push(&s, current);
+            current = current->left;
+        } else {
+            struct node* peekNode = s.data[s.top];
+            if (peekNode->right != NULL && lastVisited != peekNode->right) {
+                current = peekNode->right;
+            } else {
+                result[count++] = peekNode->data;
+                lastVisited = pop(&s);
+            }
+        }
+    }
+
+    for (int i = 0; i < count; i++) {
+        printf("%d", result[i]);
+        if (i != count - 1) printf(" -> ");
+    }
+}
+
+int countNodes(struct node* root) {
+    if (root == NULL) return 0;
+    return 1 + countNodes(root->left) + countNodes(root->right);
+}
+
+void collectLeafNodes(struct node* root, int* arr, int* index) {
+    if (root == NULL) return;
+    if (root->left == NULL && root->right == NULL) {
+        arr[(*index)++] = root->data;
+    }
+    collectLeafNodes(root->left, arr, index);
+    collectLeafNodes(root->right, arr, index);
+}
+
+void leafNodes(struct node* root) {
+    int arr[100], index = 0;
+    collectLeafNodes(root, arr, &index);
+    for (int i = 0; i < index; i++) {
+        printf("%d", arr[i]);
+        if (i != index - 1) printf(" -> ");
+    }
+}
+
+int main() {
+    struct node* root = NULL;
+    int n, val;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for (int i = 0; i < n; i++) {
+        printf("Enter value: ");
+        scanf("%d", &val);
+        root = insert(root, val);
+    }
+
+    printf("\nPreorder Traversal: ");
+    preorder(root);
+    printf("\nPostorder Traversal: ");
+    postorder(root);
+    printf("\n");
+
+    printf("Total number of nodes: %d\n", countNodes(root));
+
+    printf("Leaf Nodes: ");
+    leafNodes(root);
+    printf("\n");
+
+    return 0;
+}
