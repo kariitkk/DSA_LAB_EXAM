@@ -1,0 +1,72 @@
+#include <stdio.h>
+#define TABLE_SIZE 10
+
+int hashTable[TABLE_SIZE];
+
+// Initialize the hash table
+void initHashTable() {
+    for (int i = 0; i < TABLE_SIZE; i++)
+        hashTable[i] = -1;
+}
+
+// Hash function
+int hash(int key) {
+    return key % TABLE_SIZE;
+}
+
+// Insert using linear probing
+void insert(int key) {
+    int index = hash(key);
+
+    // Check if the slot is empty
+    if (hashTable[index] == -1) {
+        hashTable[index] = key;
+        printf("Inserted %d at index %d\n", key, index);
+        return;
+    }
+
+    // Collision occurred, use linear probing
+    int i = 1;
+    while (i < TABLE_SIZE) {
+        int newIndex = (index + i) % TABLE_SIZE;
+        if (hashTable[newIndex] == -1) {
+            hashTable[newIndex] = key;
+            printf("Inserted %d at index %d (after collision)\n", key, newIndex);
+            return;
+        }
+        i++;
+    }
+
+    printf("Hash table is full. Cannot insert %d\n", key);
+}
+
+// Display the hash table
+void display() {
+    printf("Hash Table:\n");
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        if (hashTable[i] != -1)
+            printf("[%d] = %d\n", i, hashTable[i]);
+        else
+            printf("[%d] = EMPTY\n", i);
+    }
+}
+
+// Main function
+int main() {
+    initHashTable();
+
+    insert(10);
+    insert(20);
+    insert(30);
+    insert(23);
+    insert(33);
+    insert(43);
+    insert(53);
+    insert(63);
+    insert(73);
+    insert(83);
+    insert(93); // Will fail if table is full
+
+    display();
+    return 0;
+}
