@@ -1,0 +1,133 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 100
+
+// ---------- Edge Structure ----------
+typedef struct {
+    int src, dest, weight;
+} Edge;
+
+int parent[MAX];
+
+// ---------- Union-Find ----------
+int find(int i) {
+    if (parent[i] != i)
+        parent[i] = find(parent[i]); // Path compression
+    return parent[i];
+}
+
+void unionSets(int u, int v) {
+    int setU = find(u);
+    int setV = find(v);
+    if (setU != setV)
+        parent[setU] = setV;
+}
+
+// ---------- Sort Edges by Weight (Bubble Sort) ----------
+void sortEdges(Edge edges[], int e) {
+    for (int i = 0; i < e - 1; i++) {
+        for (int j = 0; j < e - i - 1; j++) {
+            if (edges[j].weight > edges[j + 1].weight) {
+                Edge temp = edges[j];
+                edges[j] = edges[j + 1];
+                edges[j + 1] = temp;
+            }
+        }
+    }
+}
+
+// ---------- Kruskal’s Algorithm ----------
+void kruskal(Edge edges[], int e, int n) {
+    for (int i = 0; i < n; i++)
+        parent[i] = i;
+
+    sortEdges(edges, e);
+
+    int totalWeight = 0, edgeCount = 0;
+
+    printf("\nMinimum Spanning Tree edges:\n");
+    for (int i = 0; i < e && edgeCount < n - 1; i++) {
+        int u = edges[i].src;
+        int v = edges[i].dest;
+        int setU = find(u);
+        int setV = find(v);
+
+        if (setU != setV) {
+            printf("Edge (%d - %d) Weight: %d\n", u, v, edges[i].weight);
+            totalWeight += edges[i].weight;
+            unionSets(setU, setV);
+            edgeCount++;
+        }
+    }
+
+    if (edgeCount != n - 1)
+        printf("Graph is not connected. MST cannot be formed.\n");
+    else
+        printf("Total weight of MST: %d\n", totalWeight);
+}
+
+// ---------- Main ----------
+int main() {
+    int n, choice;
+    Edge edges[MAX * MAX];
+    int e = 0;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    printf("Choose graph representation:\n");
+    printf("1. Adjacency Matrix\n");
+    printf("2. Adjacency List\n");
+    printf("Enter choice (1 or 2): ");
+    scanf("%d", &choice);
+
+    if (choice == 1) {
+        // ---------- Adjacency Matrix ----------
+        int adj[MAX][MAX];
+        printf("Enter adjacency matrix (0 if no edge):\n");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                scanf("%d", &adj[i][j]);
+            }
+        }
+
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (adj[i][j] != 0) {
+                    edges[e].src = i;
+                    edges[e].dest = j;
+                    edges[e].weight = adj[i][j];
+                    e++;
+                }
+            }
+        }
+
+        printf("\nKruskal's Algorithm using Adjacency Matrix:\n");
+        kruskal(edges, e, n);
+
+    } else if (choice == 2) {
+        // ---------- Adjacency List ----------
+        int edg;
+        printf("Enter number of edges: ");
+        scanf("%d", &edg);
+
+        for (int i = 0; i < edg; i++) {
+            int u, v, w;
+            printf("Enter edge %d (u v weight): ", i + 1);
+            scanf("%d %d %d", &u, &v, &w);
+            edges[e].src = u;
+            edges[e].dest = v;
+            edges[e].weight = w;
+            e++;
+        }
+
+        printf("\nKruskal's Algorithm using Adjacency List:\n");
+        kruskal(edges, e, n);
+
+    } else {
+        printf("Invalid choice.\n");
+    }
+
+    return 0;
+}
