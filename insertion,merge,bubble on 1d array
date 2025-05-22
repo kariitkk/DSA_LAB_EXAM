@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <string.h>
+
+struct student {
+    char name[20];
+    int rollno;
+    int total_marks;
+};
+
+void print_students(struct student s[], int n) {
+    printf("Name\t\tRoll No\tTotal Marks\n");
+    printf("-------------------------------------\n");
+    for (int i = 0; i < n; i++) {
+        printf("%-15s\t%d\t%d\n", s[i].name, s[i].rollno, s[i].total_marks);
+    }
+    printf("\n");
+}
+
+void bubblesort(struct student s[], int n) {
+    int count = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (s[j].rollno > s[j + 1].rollno) {
+                struct student temp = s[j];
+                s[j] = s[j + 1];
+                s[j + 1] = temp;
+                count++;
+            }
+        }
+    }
+    printf("Bubble Sort - Number of swaps performed: %d\n", count);
+    print_students(s, n);
+}
+
+void insertionsort(struct student s[], int n) {
+    int count = 0;
+    for (int i = 1; i < n; i++) {
+        struct student current = s[i];
+        int j = i - 1;
+        while (j >= 0 && s[j].rollno > current.rollno) {
+            s[j + 1] = s[j];
+            j--;
+            count++;
+        }
+        s[j + 1] = current;
+    }
+    printf("Insertion Sort - Number of swaps performed: %d\n", count);
+    print_students(s, n);
+}
+
+void merge(struct student s[], int si, int mid, int ei, int *swap_count) {
+    int n = ei - si + 1;
+    struct student merged[n];
+    int idx1 = si, idx2 = mid + 1, x = 0;
+
+    while (idx1 <= mid && idx2 <= ei) {
+        if (s[idx1].rollno <= s[idx2].rollno) {
+            merged[x++] = s[idx1++];
+        } else {
+            merged[x++] = s[idx2++];
+            (*swap_count)++;
+        }
+    }
+
+    while (idx1 <= mid) merged[x++] = s[idx1++];
+    while (idx2 <= ei) merged[x++] = s[idx2++];
+
+    for (int i = 0, j = si; i < n; i++, j++) s[j] = merged[i];
+}
+
+void divide(struct student s[], int si, int ei, int *swap_count) {
+    if (si < ei) {
+        int mid = (si + ei) / 2;
+        divide(s, si, mid, swap_count);
+        divide(s, mid + 1, ei, swap_count);
+        merge(s, si, mid, ei, swap_count);
+    }
+}
+
+int main() {
+    int n;
+    struct student s[20], original[20];
+
+    printf("Enter number of students: ");
+    scanf("%d", &n);
+
+    for (int i = 0; i < n; i++) {
+        printf("Enter Name of student %d: ", i + 1);
+        scanf("%s", s[i].name);
+        printf("Enter Roll No of student %d: ", i + 1);
+        scanf("%d", &s[i].rollno);
+        printf("Enter Total Marks of student %d: ", i + 1);
+        scanf("%d", &s[i].total_marks);
+        original[i] = s[i];
+    }
+
+    int swap_count = 0;
+    divide(s, 0, n - 1, &swap_count);
+    printf("\nMerge Sort - Number of swaps performed: %d\n", swap_count);
+    print_students(s, n);
+
+    // Bubble Sort
+    for (int i = 0; i < n; i++) s[i] = original[i];
+    bubblesort(s, n);
+
+    // Insertion Sort
+    for (int i = 0; i < n; i++) s[i] = original[i];
+    insertionsort(s, n);
+
+    return 0;
+}
+
