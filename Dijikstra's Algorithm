@@ -1,0 +1,172 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+#define MAX 100
+
+// -------- Dijkstra using Adjacency Matrix --------
+void dijkstraMatrix(int graph[MAX][MAX], int n, int src) {
+    int dist[MAX], visited[MAX];
+
+    for (int i = 0; i < n; i++) {
+        dist[i] = INT_MAX;
+        visited[i] = 0;
+    }
+    dist[src] = 0;
+
+    for (int count = 0; count < n - 1; count++) {
+        int min = INT_MAX, u = -1;
+
+        for (int v = 0; v < n; v++) {
+            if (!visited[v] && dist[v] <= min) {
+                min = dist[v];
+                u = v;
+            }
+        }
+
+        if (u == -1) break; // No reachable vertex
+        visited[u] = 1;
+
+        for (int v = 0; v < n; v++) {
+            if (!visited[v] && graph[u][v] && dist[u] != INT_MAX &&
+                dist[u] + graph[u][v] < dist[v]) {
+                dist[v] = dist[u] + graph[u][v];
+            }
+        }
+    }
+
+    printf("Vertex\tDistance from Source %d\n", src);
+    for (int i = 0; i < n; i++)
+        printf("%d\t%s\n", i, (dist[i] == INT_MAX) ? "INF" : (char[12]){sprintf((char[12]){0}, "%d", dist[i]), '\0'});
+}
+
+// -------- Adjacency List Structures --------
+typedef struct Node {
+    int vertex, weight;
+    struct Node* next;
+} Node;
+
+Node* createNode(int v, int w) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->vertex = v;
+    newNode->weight = w;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// -------- Dijkstra using Adjacency List --------
+void dijkstraList(Node* adjList[MAX], int n, int src) {
+    int dist[MAX], visited[MAX];
+
+    for (int i = 0; i < n; i++) {
+        dist[i] = INT_MAX;
+        visited[i] = 0;
+    }
+    dist[src] = 0;
+
+    for (int count = 0; count < n - 1; count++) {
+        int min = INT_MAX, u = -1;
+
+        for (int i = 0; i < n; i++) {
+            if (!visited[i] && dist[i] < min) {
+                min = dist[i];
+                u = i;
+            }
+        }
+
+        if (u == -1) break; // All remaining vertices are unreachable
+        visited[u] = 1;
+
+        Node* temp = adjList[u];
+        while (temp != NULL) {
+            int v = temp->vertex;
+            int w = temp->weight;
+
+            if (!visited[v] && dist[u] != INT_MAX && dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+            }
+
+            temp = temp->next;
+        }
+    }
+
+    printf("Vertex\tDistance from Source %d\n", src);
+    for (int i = 0; i < n; i++)
+        printf("%d\t%s\n", i, (dist[i] == INT_MAX) ? "INF" : (char[12]){sprintf((char[12]){0}, "%d", dist[i]), '\0'});
+}
+
+// -------- Main Function --------
+int main() {
+    int choice, n, src;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+    if (n <= 0 || n > MAX) {
+        printf("Invalid number of vertices.\n");
+        return 1;
+    }
+
+    printf("Enter source vertex (0 to %d): ", n - 1);
+    scanf("%d", &src);
+    if (src < 0 || src >= n) {
+        printf("Invalid source vertex.\n");
+        return 1;
+    }
+
+    printf("\nChoose graph representation:\n");
+    printf("1. Adjacency Matrix\n");
+    printf("2. Adjacency List\n");
+    printf("Enter choice: ");
+    scanf("%d", &choice);
+
+    if (choice == 1) {
+        int graph[MAX][MAX];
+        printf("Enter adjacency matrix (0 if no edge):\n");
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                scanf("%d", &graph[i][j]);
+
+        dijkstraMatrix(graph, n, src);
+
+    } else if (choice == 2) {
+        Node* adjList[MAX] = { NULL };
+        int edges, u, v, w;
+
+        printf("Enter number of edges: ");
+        scanf("%d", &edges);
+        printf("Enter edges (format: src dest weight):\n");
+
+        for (int i = 0; i < edges; i++) {
+            scanf("%d %d %d", &u, &v, &w);
+            if (u < 0 || u >= n || v < 0 || v >= n) {
+                printf("Invalid edge. Skipping...\n");
+                continue;
+            }
+            Node* newNode = createNode(v, w);
+            newNode->next = adjList[u];
+            adjList[u] = newNode;
+
+            // If undirected graph, uncomment below:
+            // newNode = createNode(u, w);
+            // newNode->next = adjList[v];
+            // adjList[v] = newNode;
+        }
+
+        dijkstraList(adjList, n, src);
+
+        // Free memory
+        for (int i = 0; i < n; i++) {
+            Node* temp;
+            while (adjList[i]) {
+                temp = adjList[i];
+                adjList[i] = adjList[i]->next;
+                free(temp);
+            }
+        }
+
+    } else {
+        printf("Invalid choice!\n");
+    }
+
+    return 0;
+}
