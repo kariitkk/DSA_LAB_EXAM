@@ -1,0 +1,82 @@
+#include<stdio.h>
+#include<stdlib.h>
+#define MAX 100
+
+struct stack {
+    int arr[MAX];
+    int top;
+};
+
+int isEmpty(struct stack *s) {
+    return s->top == -1;
+}
+
+int isFull(struct stack *s) {
+    return s->top == MAX - 1;
+}
+
+void push(struct stack *s, int data) {
+    if (!isFull(s)) {
+        s->top++;
+        s->arr[s->top] = data;
+    }
+}
+
+int pop(struct stack *s) {
+    if (!isEmpty(s)) {
+        return s->arr[s->top--];
+    }
+    return -1;  // return a default value if empty
+}
+
+int factorial(int n) {
+    struct stack s;
+    s.top = -1;
+    int result = 1;
+
+    for (int i = n; i >= 1; i--) {
+        push(&s, i);
+    }
+
+    while (!isEmpty(&s)) {
+        result = result * pop(&s);
+    }
+
+    return result;
+}
+
+void fibonacci(int terms) {
+    struct stack s;
+    s.top = -1;
+
+    int a = 0, b = 1;
+
+    printf("Fibonacci Series: ");
+    if (terms >= 1)
+        printf("%d", a);
+    if (terms >= 2)
+        printf(" -> %d", b);
+
+    for (int i = 3; i <= terms; i++) {
+        int c = a + b;
+        push(&s, c);
+        printf(" -> %d", c);
+        a = b;
+        b = c;
+    }
+    printf("\n");
+}
+
+int main() {
+    int n, terms;
+    printf("Enter a number to find factorial: ");
+    scanf("%d", &n);
+
+    printf("Enter the number of terms in the Fibonacci series: ");
+    scanf("%d", &terms);
+
+    printf("\nFactorial of %d: %d\n", n, factorial(n));
+    fibonacci(terms);
+
+    return 0;
+}
