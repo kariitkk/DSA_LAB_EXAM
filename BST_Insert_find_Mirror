@@ -1,0 +1,103 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct node {
+    int data;
+    struct node* left;
+    struct node* right;
+};
+
+struct node* createnode(int data) {
+    struct node* newnode = (struct node*)malloc(sizeof(struct node));
+    newnode->data = data;
+    newnode->left = NULL;
+    newnode->right = NULL;
+    return newnode;
+}
+
+struct node* insert(struct node* root, int data) {
+    if (root == NULL) {
+        return createnode(data);
+    }
+    if (data < root->data) {
+        root->left = insert(root->left, data);
+    } else if (data > root->data) {
+        root->right = insert(root->right, data);
+    } else {
+        printf("%d already in BST.\n", data);
+    }
+    return root;
+}
+
+struct node* search(struct node* root, int data) {
+    if (root == NULL || root->data == data) {
+        return root;
+    }
+    if (data < root->data) {
+        return search(root->left, data);
+    } else {
+        return search(root->right, data);
+    }
+}
+
+void mirror(struct node* root) {
+    if (root == NULL) return;
+    struct node* temp = root->left;
+    root->left = root->right;
+    root->right = temp;
+
+    mirror(root->left);
+    mirror(root->right);
+}
+
+void inorder(struct node* root) {
+    if (root != NULL) {
+        inorder(root->left);
+        printf("%d ", root->data);
+        inorder(root->right);
+    }
+}
+
+int main() {
+    struct node* root = NULL;
+    int n, val;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for (int i = 0; i < n; i++) {
+        printf("Enter value: ");
+        scanf("%d", &val);
+        root = insert(root, val);
+    }
+
+    printf("\nInorder Traversal of Original BST: ");
+    inorder(root);
+    printf("\n");
+
+    int key;
+    printf("Enter a key to search: ");
+    scanf("%d", &key);
+
+    if (search(root, key)) {
+        printf("Element found in BST.\n");
+    } else {
+        printf("Element not found in BST.\n");
+    }
+
+    int num;
+    printf("Enter number to insert: ");
+    scanf("%d", &num);
+    root = insert(root, num);
+
+    printf("\nInorder Traversal After Insertion: ");
+    inorder(root);
+    printf("\n");
+
+    printf("Inorder Traversal of Mirror Image: ");
+    mirror(root);
+    inorder(root);
+    printf("\n");
+
+    return 0;
+}
