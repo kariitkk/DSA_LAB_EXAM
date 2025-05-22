@@ -1,0 +1,137 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 10
+
+// ===== Queue Section (Shared) =====
+int queue[MAX], front = -1, rear = -1;
+
+void enqueue(int v) {
+    if (rear == MAX - 1) return;
+    if (front == -1) front = 0;
+    queue[++rear] = v;
+}
+
+int dequeue() {
+    if (front == -1 || front > rear) return -1;
+    return queue[front++];
+}
+
+void resetQueue() {
+    front = rear = -1;
+}
+
+// ===== Adjacency Matrix Section =====
+int adjMatrix[MAX][MAX];
+int visitedMatrix[MAX];
+
+void bfsMatrix(int start, int n) {
+    for (int i = 0; i < n; i++) visitedMatrix[i] = 0;
+    resetQueue();
+
+    enqueue(start);
+    visitedMatrix[start] = 1;
+
+    printf("BFS using Adjacency Matrix: ");
+    while (front <= rear) {
+        int current = dequeue();
+        printf("%d ", current);
+
+        for (int i = 0; i < n; i++) {
+            if (adjMatrix[current][i] == 1 && !visitedMatrix[i]) {
+                enqueue(i);
+                visitedMatrix[i] = 1;
+            }
+        }
+    }
+    printf("\n");
+}
+
+// ===== Adjacency List Section =====
+struct Node {
+    int vertex;
+    struct Node* next;
+};
+
+struct Node* adjList[MAX];
+int visitedList[MAX];
+
+struct Node* createNode(int v) {
+    struct Node* newNode = (struct Node*) malloc(sizeof(struct Node));
+    newNode->vertex = v;
+    newNode->next = NULL;
+    return newNode;
+}
+
+void addEdgeList(int src, int dest) {
+    struct Node* newNode = createNode(dest);
+    newNode->next = adjList[src];
+    adjList[src] = newNode;
+
+    newNode = createNode(src);
+    newNode->next = adjList[dest];
+    adjList[dest] = newNode;
+}
+
+void bfsList(int start, int n) {
+    for (int i = 0; i < n; i++) visitedList[i] = 0;
+    resetQueue();
+
+    enqueue(start);
+    visitedList[start] = 1;
+
+    printf("BFS using Adjacency List: ");
+    while (front <= rear) {
+        int current = dequeue();
+        printf("%d ", current);
+
+        struct Node* temp = adjList[current];
+        while (temp) {
+            int v = temp->vertex;
+            if (!visitedList[v]) {
+                enqueue(v);
+                visitedList[v] = 1;
+            }
+            temp = temp->next;
+        }
+    }
+    printf("\n");
+}
+
+// ===== Main Section =====
+int main() {
+    int n, edges, src, dest, start, choice;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    // Initialize
+    for (int i = 0; i < n; i++) adjList[i] = NULL;
+
+    printf("Enter number of edges: ");
+    scanf("%d", &edges);
+
+    for (int i = 0; i < edges; i++) {
+        printf("Enter edge (src dest): ");
+        scanf("%d %d", &src, &dest);
+        adjMatrix[src][dest] = 1;
+        adjMatrix[dest][src] = 1; // For undirected graph
+
+        addEdgeList(src, dest);   // Also add to list
+    }
+
+    printf("Enter starting vertex: ");
+    scanf("%d", &start);
+
+    printf("Choose BFS method:\n1. Adjacency Matrix\n2. Adjacency List\nEnter choice: ");
+    scanf("%d", &choice);
+
+    if (choice == 1)
+        bfsMatrix(start, n);
+    else if (choice == 2)
+        bfsList(start, n);
+    else
+        printf("Invalid choice!\n");
+
+    return 0;
+}
